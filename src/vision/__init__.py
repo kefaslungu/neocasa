@@ -1,52 +1,111 @@
-import base64
 import os
-from mimetypes import guess_type
-from openai import AzureOpenAI
-# Function to encode a local image into data URL
-# copyright(c) Microsoft
-def __local_image_to_data_url__(image_path):
+from azure.ai.vision.imageanalysis import ImageAnalysisClient
+from azure.ai.vision.imageanalysis.models import VisualFeatures
+from azure.core.credentials import AzureKeyCredential
+import logging
+import speech
+def analyze_image(image_path):
+    # Configure logging
+    logging.basicConfig(level=logging.INFO)
+
+    # Set up Azure credentials
+    endpoint = os.getenv("neovisionendpoint")
+    key = os.getenv("neovisionkey")
+    if not endpoint or not key:
+        logging.error("Azure endpoint or key is missing.")
+        return None
+
+    # Check if the image file exists
     if not os.path.exists(image_path):
-        raise FileNotFoundError(f"The file at {image_path} does not exist.")
-    # Guess the MIME type of the image based on the file extension
-    mime_type, _ = guess_type(image_path)
-    if mime_type is None:
-        mime_type = 'application/octet-stream'  # Default MIME type if none is found
-    # Read and encode the image file
-    with open(image_path, "rb") as image_file:
-        base64_encoded_data = base64.b64encode(image_file.read()).decode('utf-8')
-    # Construct the data URL
-    return f"data:{mime_type};base64,{base64_encoded_data}"
+        logging.error(f"Image file not found: {image_path}")
+        return None
 
-api_base = os.getenv("neooaiendpoint")
-api_key= os.getenv("neooaikey")
-deployment_name = 'neocasa'
-api_version = '2023-12-01-preview' # this might change in the future
+    # Read image data
+    with open(image_path, "rb") as img_file:
+        image_data = img_file.read()
 
-message = "You are an AI specialized in describing images to visually impaired individuals. Your sole purpose is to provide detailed, accurate, and vivid descriptions of images in a way that enables the person to fully understand and visualize the content. You are not permitted to provide opinions, answer questions unrelated to image descriptions, or perform any other tasks beyond describing the image at hand. Ensure your descriptions are respectful, detailed, and inclusive. Remember that your users are visually impaired, they depend on you to understand the image And if any one ask of your name, say your name is neocasa, developed by Kefas Lungu"
-query = "Describe this image, not living any detail"
-path_to_image = __local_image_to_data_url__(r"C:\Users\kefas\Pictures\Screenshots\Screenshot (81).png")
-client = AzureOpenAI(
-    api_key=api_key,
-    api_version=api_version,
-    base_url=f"{api_base}/openai/deployments/{deployment_name}"
-    )
+    # Create the Image Analysis client
+    client = ImageAnalysisClient(endpoint=endpoint, credential=AzureKeyCredential(key))
 
-# Function to describe an image
-def describe_image(system_message, user_message, image_url):
-    # Construct the prompt by embedding the image URL in the user query
-    full_user_message = f"{user_message}\n\nImage URL: {image_url}"
-    
-    # Send the request to the Azure OpenAI API
-    response = client.chat.completions.create(
-        model=deployment_name,
-        messages=[
-            { "role": "system", "content": system_message },
-            { "role": "user", "content": full_user_message }
-        ],
-        max_tokens=2000
-    )
-    
-    # Return the description
-    print(response.choices[0].message.content)
+    try:
+        # Analyze the image
+        result = client.analyze(
+            image_data=image_data,
+            visual_features=[
+                VisualFeatures.TAGS,
+                VisualFeatures.OBJECTS,
+                VisualFeatures.CAPTION,
+                VisualFeatures.DENSE_CAPTIONS,
+                VisualFeatures.READ,
+                VisualFeatures.SMART_CROPS,
+                VisualFeatures.PEOPLE,
+            ],
+            language="en",
+        )
+        parse_full_image_analysis_result_to_text(result)
 
-describe_image(message, query, path_to_image)
+    except Exception as e:
+        logging.error(f"An error occurred during image analysis: {e}")
+        return None
+
+def parse_full_image_analysis_result_to_text(data):
+    # Extract the main caption
+    caption = data.get("captionResult", {}).get("text", "").strip()
+
+    # Extract dense captions
+    dense_captions = [
+        item["text"].strip() for item in data.get("denseCaptionsResult", {}).get("values", []) if item["text"].strip()
+    ]
+
+    # Extract tags
+    tags = [
+        tag["name"].strip() for tag in data.get("tagsResult", {}).get("values", []) if tag["name"].strip()
+    ]
+
+    # Extract people (if identified by bounding boxes)
+    people = [
+        f"Person {idx + 1}" for idx, _ in enumerate(data.get("peopleResult", {}).get("values", []))
+    ]
+
+    # Extract text from OCR results
+    detected_text = []
+    ocr_blocks = data.get("readResult", {}).get("blocks", [])
+    for block in ocr_blocks:
+        for line in block.get("lines", []):
+            line_text = line.get("text", "").strip()
+            if line_text:
+                detected_text.append(line_text)
+
+    # Construct a clean, single-string output
+    global output
+    output = []
+
+    # Add caption
+    if caption:
+        output.append(f"Summary: {caption}")
+
+    # Add dense captions
+    #if dense_captions:
+    #observations = " ".join(dense_captions)
+    #output.append(f"\nDetailed Observations: {observations}")
+
+    # Add tags
+    #if tags:
+    #tags_text = ", ".join(tags)
+    #output.append(f"\nTags: {tags_text}")
+
+    # Add people
+    #if people:
+    #people_text = ", ".join(people)
+    #output.append(f"\nPeople Detected: {people_text}")
+
+    # Add OCR text
+    if detected_text:
+        text_content = " ".join(detected_text)
+        output.append(f"\nText: {text_content}")
+
+    # Join everything into one clean string
+    #return " ".join(output).strip()
+    image_result = " ".join(output).strip()
+    speech.speak(image_result)
+
