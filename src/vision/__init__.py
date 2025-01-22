@@ -1,3 +1,4 @@
+# The vision api for Neocasa
 import os
 from azure.ai.vision.imageanalysis import ImageAnalysisClient
 from azure.ai.vision.imageanalysis.models import VisualFeatures
@@ -29,6 +30,7 @@ def analyze_image(image_path):
 
     try:
         # Analyze the image
+        global result
         result = client.analyze(
             image_data=image_data,
             visual_features=[
@@ -38,8 +40,8 @@ def analyze_image(image_path):
                 VisualFeatures.DENSE_CAPTIONS,
                 VisualFeatures.READ,
                 VisualFeatures.SMART_CROPS,
-                VisualFeatures.PEOPLE,
             ],
+            gender_neutral_caption=False,
             language="en",
         )
         parse_full_image_analysis_result_to_text(result)
@@ -62,11 +64,6 @@ def parse_full_image_analysis_result_to_text(data):
         tag["name"].strip() for tag in data.get("tagsResult", {}).get("values", []) if tag["name"].strip()
     ]
 
-    # Extract people (if identified by bounding boxes)
-    people = [
-        f"Person {idx + 1}" for idx, _ in enumerate(data.get("peopleResult", {}).get("values", []))
-    ]
-
     # Extract text from OCR results
     detected_text = []
     ocr_blocks = data.get("readResult", {}).get("blocks", [])
@@ -77,35 +74,23 @@ def parse_full_image_analysis_result_to_text(data):
                 detected_text.append(line_text)
 
     # Construct a clean, single-string output
-    global output
     output = []
 
     # Add caption
     if caption:
-        output.append(f"Summary: {caption}")
+        output.append(f"Summary: \n {caption}\n")
 
+    # I've commented out the code on purpose, it will be useful in the future.
     # Add dense captions
     #if dense_captions:
     #observations = " ".join(dense_captions)
     #output.append(f"\nDetailed Observations: {observations}")
 
-    # Add tags
-    #if tags:
-    #tags_text = ", ".join(tags)
-    #output.append(f"\nTags: {tags_text}")
-
-    # Add people
-    #if people:
-    #people_text = ", ".join(people)
-    #output.append(f"\nPeople Detected: {people_text}")
-
     # Add OCR text
     if detected_text:
-        text_content = " ".join(detected_text)
-        output.append(f"\nText: {text_content}")
+        text_content = " ".join(map(str, detected_text))
+        output.append(f"Text: \n {text_content}")
 
     # Join everything into one clean string
-    #return " ".join(output).strip()
-    image_result = " ".join(output).strip()
-    speech.speak(image_result)
-
+    global image_result  
+    image_result = " ".join(map(str, output))
