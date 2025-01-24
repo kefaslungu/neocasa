@@ -4,26 +4,35 @@ import azure.cognitiveservices.speech as speechsdk
 SPEECH_KEY, SPEECH_REGION = os.environ["neospeechkey"], "eastus"
 speech_config = speechsdk.SpeechConfig(subscription=SPEECH_KEY, region=SPEECH_REGION)
 
-def speak(text):
-    # Configure audio output to the default speaker
+def speak(text, volume="default", pitch="0%", rate="0%", voice="en-US-AriaNeural", audio_format = "Riff48Khz16BitMonoPcm"):
+    # Generate SSML with dynamic parameters
+    ssml = f"""
+    <speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US">
+        <voice name="{voice}">
+            <prosody rate="{rate}" pitch="{pitch}" volume="{volume}">
+                {text}
+            </prosody>
+        </voice>
+    </speak>
+    """
+    speech_config.set_speech_synthesis_output_format(
+        getattr(speechsdk.SpeechSynthesisOutputFormat, audio_format)
+    )
+    # Configure audio output to default speaker
     audio_config = speechsdk.audio.AudioOutputConfig(use_default_speaker=True)
-    
-    # Configure the speech synthesis voice
-    speech_config.speech_synthesis_voice_name = 'en-US-AriaNeural'
     
     # Create a speech synthesizer
     speech_synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=audio_config)
     
-    # Synthesize the given text to speech
-    speech_synthesis_result = speech_synthesizer.speak_text_async(text).get()
-    
-    # Check the result and provide feedback
-    if speech_synthesis_result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
-        print(f"Speech synthesized for text: {text}")
-    elif speech_synthesis_result.reason == speechsdk.ResultReason.Canceled:
-        cancellation_details = speech_synthesis_result.cancellation_details
-        print(f"Speech synthesis canceled: {cancellation_details.reason}")
-        if cancellation_details.reason == speechsdk.CancellationReason.Error:
-            if cancellation_details.error_details:
+    # Synthesize speech using SSML
+    try:
+        result = speech_synthesizer.speak_ssml_async(ssml).get()
+        if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
+            print(f"Speech synthesized successfully: {text}")
+        elif result.reason == speechsdk.ResultReason.Canceled:
+            cancellation_details = result.cancellation_details
+            print(f"Speech synthesis canceled: {cancellation_details.reason}")
+            if cancellation_details.reason == speechsdk.CancellationReason.Error:
                 print(f"Error details: {cancellation_details.error_details}")
-                print("Did you set the speech resource key and region values?")
+    except Exception as e:
+        print(f"An error occurred: {e}")
