@@ -1,7 +1,7 @@
 import os
 import configparser
 import azure.cognitiveservices.speech as speechsdk
-from .speech_config import voice, rate, pitch, volume, bitrate
+from .config import voice, rate, pitch, volume, bitrate# if I didn't import them like this it did not work, and I don't want to use import *
 
 SPEECH_KEY, SPEECH_REGION = os.environ["neospeechkey"], "eastus"
 speech_config = speechsdk.SpeechConfig(subscription=SPEECH_KEY, region=SPEECH_REGION)
@@ -38,4 +38,3 @@ def speak(text, volume=volume, pitch=pitch, rate=rate, voice=voice, audio_format
                 print(f"Error details: {cancellation_details.error_details}")
     except Exception as e:
         print(f"An error occurred: {e}")
-

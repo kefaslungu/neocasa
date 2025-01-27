@@ -1,10 +1,11 @@
 # The vision api for Neocasa
 import os
+import logging
+
 from azure.ai.vision.imageanalysis import ImageAnalysisClient
 from azure.ai.vision.imageanalysis.models import VisualFeatures
 from azure.core.credentials import AzureKeyCredential
-import logging
-#import speech
+
 def analyze_image(image_path):
     # Configure logging
     logging.basicConfig(level=logging.INFO)
