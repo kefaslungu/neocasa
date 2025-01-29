@@ -1,4 +1,3 @@
-
 import sys
 import os
 from threading import Thread as t
@@ -22,10 +21,10 @@ def display_result_dialog(result):
             wx.MessageBox("Unable to access the clipboard.", "Error", wx.OK | wx.ICON_ERROR)
 
     def close(event):
-        dialog.EndModal(wx.ID_CANCEL)
+        dialog.Destroy()
+
 
     # Create the dialog
-    app = wx.App(False)
     dialog = wx.Dialog(None, wx.ID_ANY, title="Image result", size=(400, 300))
     pnl = wx.Panel(dialog)
 
@@ -48,9 +47,4 @@ def display_result_dialog(result):
     # Show the dialog
     dialog.ShowModal()
     dialog.Destroy()
-    app.MainLoop()
-
-# Example usage
-if __name__ == "__main__":
-    result = "Seen an image of a computer Text: Microsoft teams meeting."
-    display_result_dialog(result)
+    return
