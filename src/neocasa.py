@@ -1,8 +1,10 @@
 import os
 import sys
+import winsound
 import wx
 from threading import Thread as t
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+import sounds
 import speech
 import ui
 import vision
@@ -25,6 +27,7 @@ class Neocasa(wx.Frame):
             if error:
                 wx.CallAfter(wx.MessageBox, error, "Error", wx.OK | wx.ICON_ERROR)
             else:
+                sounds.waiting()
                 t(target=self.analyze_image, args=(image_path,)).start()
         
         t(target=capture_and_notify).start()
@@ -46,7 +49,7 @@ class Neocasa(wx.Frame):
             image_path = file_dialog.GetPath()
         # Start the image analysis in a separate thread to avoid freezing of the UI.
         t(target=self.analyze_image, args=(image_path,)).start()
-
+        sounds.waiting()
     # A different function to analyze the image to avoid stories that touches the heart.
     def analyze_image(self, image_path):
         """Analyze the image and update the UI with the result."""
@@ -59,6 +62,7 @@ class Neocasa(wx.Frame):
     def display_result(self):
         """Display the result of the image analysis."""
         if vision.image_analyzer.result:
+            winsound.PlaySound(None, winsound.SND_PURGE)
             ui.display_result(vision.image_analyzer.image_result)
 
     def close(self, event):
