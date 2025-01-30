@@ -18,8 +18,22 @@ class Neocasa(wx.Frame):
         # we need to create the buttons that will be on the panel one by one.
         ui.create_button(self.pnl, "Open an image", self.open_image)# a function to open an image some where on your computer, then describe it. Tipical ctrl+O
         ui.create_button(self.pnl, "Take a picture using Built-in camera", self.snap)# takes a picture using your built-in camera to describe it. 
+        ui.create_button(self.pnl, "Describe clipboard image", self.clipboard_photo)# takes a picture using your built-in camera to describe it. 
 
-    # define the function to snap the picture.
+    def clipboard_photo(self, event=None):
+        """Runs clipboard image processing in a separate thread."""
+        t(target=self.capture_and_notify, daemon=True).start()
+    
+    def capture_and_notify(self):
+        """Captures clipboard image and triggers analysis if successful."""
+        image_path, error = vision.get_clipboard_image()
+        
+        if error:
+            print(f"[ERROR] {error}")  # Log the error silently
+        else:
+            t(target=self.analyze_image, args=(image_path,)).start()
+
+        # define the function to snap the picture.
     def snap(self, event=None):
         def capture_and_notify():
             image_path, error = vision.snap_picture()
@@ -27,7 +41,6 @@ class Neocasa(wx.Frame):
             if error:
                 wx.CallAfter(wx.MessageBox, error, "Error", wx.OK | wx.ICON_ERROR)
             else:
-                sounds.waiting()
                 t(target=self.analyze_image, args=(image_path,)).start()
         
         t(target=capture_and_notify).start()
@@ -49,11 +62,11 @@ class Neocasa(wx.Frame):
             image_path = file_dialog.GetPath()
         # Start the image analysis in a separate thread to avoid freezing of the UI.
         t(target=self.analyze_image, args=(image_path,)).start()
-        sounds.waiting()
     # A different function to analyze the image to avoid stories that touches the heart.
     def analyze_image(self, image_path):
         """Analyze the image and update the UI with the result."""
         # Perform image analysis
+        sounds.waiting()
         vision.image_analyzer.analyze_image(image_path)
 
         # Use wx.CallAfter to safely update the UI from the thread
