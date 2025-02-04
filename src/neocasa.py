@@ -19,6 +19,34 @@ class Neocasa(wx.Frame):
         ui.create_button(self.pnl, "Open an image", self.open_image)# a function to open an image some where on your computer, then describe it. Tipical ctrl+O
         ui.create_button(self.pnl, "Take a picture using Built-in camera", self.snap)# takes a picture using your built-in camera to describe it. 
         ui.create_button(self.pnl, "Describe clipboard image", self.clipboard_photo)# takes a picture using your built-in camera to describe it. 
+        ui.create_button(self.pnl, "Describe current window", self.window_screenshot)# takes a picture using your built-in camera to describe it. 
+        ui.create_button(self.pnl, "Describe full screen", self.full_screenshot)# takes a picture using your built-in camera to describe it. 
+
+    def full_screenshot(self, event=None):
+        """Captures a full screenshot and processes it in a background thread."""
+        def capture_and_notify():
+            image_path, error = vision.take_full_screenshot()
+
+            if error:
+                wx.CallAfter(wx.MessageBox, f"Error: {error}", "Error", wx.OK | wx.ICON_ERROR)
+            else:
+                sounds.screenshot()
+                t(target=self.analyze_image, args=(image_path,)).start()
+
+        t(target=capture_and_notify).start()
+
+    def window_screenshot(self, event=None):
+        """Captures the active window screenshot and processes it in a background thread."""
+        def capture_and_notify():
+            image_path, error = vision.take_active_window_screenshot()
+
+            if error:
+                wx.CallAfter(wx.MessageBox, f"Error: {error}", "Error", wx.OK | wx.ICON_ERROR)
+            else:
+                sounds.screenshot()
+                t(target=self.analyze_image, args=(image_path,)).start()
+
+        t(target=capture_and_notify).start()
 
     def clipboard_photo(self, event=None):
         """Runs clipboard image processing in a separate thread."""
@@ -29,7 +57,7 @@ class Neocasa(wx.Frame):
         image_path, error = vision.get_clipboard_image()
         
         if error:
-            print(f"[ERROR] {error}")  # Log the error silently
+            wx.CallAfter(wx.MessageBox, f"Error: {error}", "Error", wx.OK | wx.ICON_ERROR)
         else:
             t(target=self.analyze_image, args=(image_path,)).start()
 
@@ -41,6 +69,7 @@ class Neocasa(wx.Frame):
             if error:
                 wx.CallAfter(wx.MessageBox, error, "Error", wx.OK | wx.ICON_ERROR)
             else:
+                sounds.snap()
                 t(target=self.analyze_image, args=(image_path,)).start()
         
         t(target=capture_and_notify).start()

@@ -1,4 +1,3 @@
-
 from .clipboard import get_clipboard_image
 from .import image_analyzer
 from .camera import snap_picture
