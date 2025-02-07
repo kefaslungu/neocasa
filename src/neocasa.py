@@ -5,7 +5,6 @@ import wx
 from threading import Thread as t
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 import sounds
-import speech
 import ui
 import vision
 
@@ -13,15 +12,18 @@ import vision
 class Neocasa(wx.Frame):
     def __init__(self):
         super().__init__(None, wx.ID_ANY, title="Neocasa", size=(400, 300))
+        icon = wx.Icon("images/neocasa_logo.ico", wx.BITMAP_TYPE_ICO)
+        self.SetIcon(icon)
         self.pnl = wx.Panel(self)  # Create the panel
         self.Bind(wx.EVT_CLOSE, self.close)
         # we need to create the buttons that will be on the panel one by one.
         ui.create_button(self.pnl, "Open an image", self.open_image)# a function to open an image some where on your computer, then describe it. Tipical ctrl+O
-        ui.create_button(self.pnl, "Take a picture using Built-in camera", self.snap)# takes a picture using your built-in camera to describe it. 
-        ui.create_button(self.pnl, "Describe clipboard image", self.clipboard_photo)# takes a picture using your built-in camera to describe it. 
-        ui.create_button(self.pnl, "Describe current window", self.window_screenshot)# takes a picture using your built-in camera to describe it. 
-        ui.create_button(self.pnl, "Describe full screen", self.full_screenshot)# takes a picture using your built-in camera to describe it. 
+        ui.create_button(self.pnl, "Take a picture using Built-in camera", self.snap)# takes a picture using your built-in camera to describe it. Selfy
+        ui.create_button(self.pnl, "Describe clipboard image", self.clipboard_photo)# copy an image on the clipboard to describe it.
+        ui.create_button(self.pnl, "Describe current window", self.window_screenshot)# takes a picture of your current screen.
+        ui.create_button(self.pnl, "Describe full screen", self.full_screenshot)# takes a picture of full screen.
 
+    # define a function to take a full screenshot, then active window screenshot after that.
     def full_screenshot(self, event=None):
         """Captures a full screenshot and processes it in a background thread."""
         def capture_and_notify():
@@ -48,6 +50,7 @@ class Neocasa(wx.Frame):
 
         t(target=capture_and_notify).start()
 
+    # check the image of the clipboard and describe it.
     def clipboard_photo(self, event=None):
         """Runs clipboard image processing in a separate thread."""
         t(target=self.capture_and_notify, daemon=True).start()
@@ -61,7 +64,7 @@ class Neocasa(wx.Frame):
         else:
             t(target=self.analyze_image, args=(image_path,)).start()
 
-        # define the function to snap the picture.
+        # define the function to snap the picture with your built-in camera.
     def snap(self, event=None):
         def capture_and_notify():
             image_path, error = vision.snap_picture()
@@ -95,7 +98,7 @@ class Neocasa(wx.Frame):
     def analyze_image(self, image_path):
         """Analyze the image and update the UI with the result."""
         # Perform image analysis
-        sounds.waiting()
+        sounds.waiting()# plays a sound while analysis is ongoing.
         vision.image_analyzer.analyze_image(image_path)
 
         # Use wx.CallAfter to safely update the UI from the thread
@@ -104,7 +107,7 @@ class Neocasa(wx.Frame):
     def display_result(self):
         """Display the result of the image analysis."""
         if vision.image_analyzer.result:
-            winsound.PlaySound(None, winsound.SND_PURGE)
+            winsound.PlaySound(None, winsound.SND_PURGE)# stop sound playing, because the result is ready.
             ui.display_result(vision.image_analyzer.image_result)
 
     def close(self, event):

@@ -1,4 +1,5 @@
-# Neocasa.
+![Neocasa Logo](src/images/neocasa_logo.png)
+# Neocasa
 This is a project for the Microsoft learn student ambassadors [December to February AI project.](https://mvp.microsoft.com/en-US/studentambassadors/)
 The project will be on building an app that uses Microsoft Azure vision, to get the descriptions of our images, with the following features.
 * Generate image descriptions and allow you to ask follow-up questions.

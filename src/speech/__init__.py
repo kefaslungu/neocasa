@@ -8,7 +8,7 @@ import azure.cognitiveservices.speech as speechsdk
 SPEECH_KEY, SPEECH_REGION = os.environ["neospeechkey"], "eastus"
 speech_config = speechsdk.SpeechConfig(subscription=SPEECH_KEY, region=SPEECH_REGION)
 
-def speak(text, volume="+10%", pitch="0%", rate="+5%", voice="en-US-AriaNeural", audio_format="Riff48Khz16BitMonoPcm"):
+def speak(text, volume="+10%", pitch="0%", rate="+5%", voice="en-US-NancyNeural", audio_format="Riff48Khz16BitMonoPcm"):
     # Generate SSML with dynamic parameters
     ssml = f"""
     <speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US">

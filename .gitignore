@@ -1,3 +1,6 @@
 src/build/
+src/dist/
 neocasa/
 *.pyc
+*.spec
+*.jpg
