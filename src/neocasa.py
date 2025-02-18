@@ -1,8 +1,10 @@
+# neocasa
 import os
 import sys
 import winsound
 import wx
 from threading import Thread as t
+
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 import sounds
 import ui
@@ -11,24 +13,57 @@ import vision
 
 class Neocasa(wx.Frame):
     def __init__(self):
-        super().__init__(None, wx.ID_ANY, title="Neocasa", size=(400, 300))
+        super().__init__(None, wx.ID_ANY, title="Neocasa", size=(500, 400))
         icon = wx.Icon("images/neocasa_logo.ico", wx.BITMAP_TYPE_ICO)
         self.SetIcon(icon)
-        self.pnl = wx.Panel(self)  # Create the panel
-        self.Bind(wx.EVT_CLOSE, self.close)
-        # we need to create the buttons that will be on the panel one by one.
-        ui.create_button(self.pnl, "Open an image", self.open_image)# a function to open an image some where on your computer, then describe it. Tipical ctrl+O
-        ui.create_button(self.pnl, "Take a picture using Built-in camera", self.snap)# takes a picture using your built-in camera to describe it. Selfy
-        ui.create_button(self.pnl, "Describe clipboard image", self.clipboard_photo)# copy an image on the clipboard to describe it.
-        ui.create_button(self.pnl, "Describe current window", self.window_screenshot)# takes a picture of your current screen.
-        ui.create_button(self.pnl, "Describe full screen", self.full_screenshot)# takes a picture of full screen.
 
-    # define a function to take a full screenshot, then active window screenshot after that.
+        # Set background color and font
+        self.pnl = wx.Panel(self)
+        self.pnl.SetBackgroundColour("#2C2F33")  # Dark gray background
+
+        font = wx.Font(10, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
+
+        vbox = wx.BoxSizer(wx.VERTICAL)
+
+        title = wx.StaticText(self.pnl, label="Neocasa")
+        title.SetFont(wx.Font(12, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD))
+        title.SetForegroundColour("#FFFFFF")  # White text
+        vbox.Add(title, 0, wx.ALIGN_CENTER | wx.TOP, 15)
+
+        # Button styling
+        button_labels = [
+            ("Open an Image from file explorer", self.open_image),
+            ("Take a picture using Built-in Camera", self.snap),
+            ("Describe Clipboard Image", self.clipboard_photo),
+            ("Describe Current Window", self.window_screenshot),
+            ("Take a Full Screenshot and describe it", self.full_screenshot),
+        ]
+
+        for label, handler in button_labels:
+            btn = wx.Button(self.pnl, label=label, size=(250, 40))
+            btn.SetFont(font)
+            btn.SetBackgroundColour("#7289DA")  # Soft blue
+            btn.SetForegroundColour("#FFFFFF")  # White text
+            btn.SetWindowStyle(wx.BORDER_NONE)  # Remove borders
+            btn.Bind(wx.EVT_ENTER_WINDOW, self.on_hover)
+            btn.Bind(wx.EVT_LEAVE_WINDOW, self.on_leave)
+            btn.Bind(wx.EVT_BUTTON, handler)
+            vbox.Add(btn, 0, wx.ALIGN_CENTER | wx.ALL, 5)
+
+        self.pnl.SetSizer(vbox)
+        self.Bind(wx.EVT_CLOSE, self.close)
+
+    def on_hover(self, event):
+        event.GetEventObject().SetBackgroundColour("#677BC4")  # Darker blue on hover
+        event.GetEventObject().Refresh()
+
+    def on_leave(self, event):
+        event.GetEventObject().SetBackgroundColour("#7289DA")  # Original color
+        event.GetEventObject().Refresh()
+
     def full_screenshot(self, event=None):
-        """Captures a full screenshot and processes it in a background thread."""
         def capture_and_notify():
             image_path, error = vision.take_full_screenshot()
-
             if error:
                 wx.CallAfter(wx.MessageBox, f"Error: {error}", "Error", wx.OK | wx.ICON_ERROR)
             else:
@@ -38,10 +73,8 @@ class Neocasa(wx.Frame):
         t(target=capture_and_notify).start()
 
     def window_screenshot(self, event=None):
-        """Captures the active window screenshot and processes it in a background thread."""
         def capture_and_notify():
             image_path, error = vision.take_active_window_screenshot()
-
             if error:
                 wx.CallAfter(wx.MessageBox, f"Error: {error}", "Error", wx.OK | wx.ICON_ERROR)
             else:
@@ -50,64 +83,49 @@ class Neocasa(wx.Frame):
 
         t(target=capture_and_notify).start()
 
-    # check the image of the clipboard and describe it.
     def clipboard_photo(self, event=None):
-        """Runs clipboard image processing in a separate thread."""
         t(target=self.capture_and_notify, daemon=True).start()
-    
+
     def capture_and_notify(self):
-        """Captures clipboard image and triggers analysis if successful."""
         image_path, error = vision.get_clipboard_image()
-        
         if error:
             wx.CallAfter(wx.MessageBox, f"Error: {error}", "Error", wx.OK | wx.ICON_ERROR)
         else:
             t(target=self.analyze_image, args=(image_path,)).start()
 
-        # define the function to snap the picture with your built-in camera.
     def snap(self, event=None):
         def capture_and_notify():
             image_path, error = vision.snap_picture()
-    
             if error:
                 wx.CallAfter(wx.MessageBox, error, "Error", wx.OK | wx.ICON_ERROR)
             else:
                 sounds.snap()
                 t(target=self.analyze_image, args=(image_path,)).start()
-        
+
         t(target=capture_and_notify).start()
-    
-    # Tipical Ctrl+O...
+
     def open_image(self, event):
-        """Handle image file opening."""
         with wx.FileDialog(
             self,
             "Open an image file",
-            wildcard="Image files (*.jpg;*.jpeg;*.png)|*.jpg;*.jpeg;*.png",# only these file extentions will show, we don't need any thing else.
-            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST
+            wildcard="Image files (*.jpg;*.jpeg;*.png)|*.jpg;*.jpeg;*.png",
+            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
         ) as file_dialog:
-
             if file_dialog.ShowModal() == wx.ID_CANCEL:
-                return  # User canceled the dialog
+                return
 
-            # Get the selected file path
             image_path = file_dialog.GetPath()
-        # Start the image analysis in a separate thread to avoid freezing of the UI.
-        t(target=self.analyze_image, args=(image_path,)).start()
-    # A different function to analyze the image to avoid stories that touches the heart.
-    def analyze_image(self, image_path):
-        """Analyze the image and update the UI with the result."""
-        # Perform image analysis
-        sounds.waiting()# plays a sound while analysis is ongoing.
-        vision.image_analyzer.analyze_image(image_path)
 
-        # Use wx.CallAfter to safely update the UI from the thread
+        t(target=self.analyze_image, args=(image_path,)).start()
+
+    def analyze_image(self, image_path):
+        sounds.waiting()
+        vision.image_analyzer.analyze_image(image_path)
         wx.CallAfter(self.display_result)
 
     def display_result(self):
-        """Display the result of the image analysis."""
         if vision.image_analyzer.result:
-            winsound.PlaySound(None, winsound.SND_PURGE)# stop sound playing, because the result is ready.
+            winsound.PlaySound(None, winsound.SND_PURGE)
             ui.display_result(vision.image_analyzer.image_result)
 
     def close(self, event):
