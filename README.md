@@ -1,6 +1,8 @@
-![Neocasa Logo](src/images/neocasa_logo.png)
+![Neocasa](src/images/neocasa_logo.png)
+
+For Georges, my slide can be found: [here](https://stdntpartners-my.sharepoint.com/:p:/g/personal/kefas_lungu_studentambassadors_com/EdMs5vTkEbtIsJYHp8ary0IBgLc-eZixakIcCpvUWVUt5Q?e=E0MXaC).
 # Neocasa
-This is a project for the Microsoft learn student ambassadors [December to February AI project.](https://mvp.microsoft.com/en-US/studentambassadors/)
+This is a project for the Microsoft learn student ambassadors [December 2024 to February 2025 AI project](https://mvp.microsoft.com/en-US/studentambassadors/).
 The project will be on building an app that uses Microsoft Azure vision, to get the descriptions of our images, with the following features.
 * Generate image descriptions and allow you to ask follow-up questions.
 * Allows you to communicate using speech, and here an audio feedback if you want to.
@@ -20,10 +22,26 @@ Just like Microsoft has seeingAI for Android and IOS, consider this as a seeingA
   ```
 * And then I'll suggest you create a virtual environment to store all the dependences for this project.
   ```
-  Pip install -r requirements.txt.
+  pip install -r requirements.txt
+  ```
+* You don't need me to tell you that you need python install right? Well at list version 3.8 is required, but version 3.10 is recommended!
+
+## Building an executable (*.exe):
+* Clone the project (see above on how to do so), run:
+  ```
+  cd neocasa
+  ```
+* Make sure you are running in a virtual environment. In your terminal, run this:
+  ```
+  python -m venv neocasa
+  .\neocasa\scripts\activate.bat
+  pip install -r requirements.txt
+  ```
+* Wait for the process to complete, and run:
+  ```
+  python -m setup.py build
   ```
 
-You don't need me to tell you that you need python install right? Well at list version 3.8 is required, but version 3.10 is recommended!
 
 If you don't want to go through the stress of installing python and the stress of creating a virtual environment or even installing dependences, don't worry. I'll release binaries just for you!
 
