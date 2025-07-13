@@ -1,6 +1,5 @@
 ![Neocasa](src/images/neocasa_logo.png)
 
-For Georges, my slide can be found: [here](https://stdntpartners-my.sharepoint.com/:p:/g/personal/kefas_lungu_studentambassadors_com/EdMs5vTkEbtIsJYHp8ary0IBgLc-eZixakIcCpvUWVUt5Q?e=E0MXaC).
 # Neocasa
 This is a project for the Microsoft learn student ambassadors [December 2024 to February 2025 AI project](https://mvp.microsoft.com/en-US/studentambassadors/).
 The project will be on building an app that uses Microsoft Azure vision, to get the descriptions of our images, with the following features.
