@@ -1,9 +1,9 @@
+
 import os
 from datetime import datetime
 import mss
 import mss.tools
 import win32gui
-from .image_analyzer import analyze_image
 
 def get_screenshot_directory():
     base_dir = os.path.join(os.environ["LOCALAPPDATA"], "neocasa", "screenshots")

@@ -16,7 +16,7 @@ The following models are currently supported, or will be in the coming months.
 * Google Gemini
 * OpenAI
 * Claud
-Grok
+* Grok
 
 ## Requirements and how to run the project locally:
 Please note: requirements for each models will be added as they are built.

@@ -6,6 +6,7 @@ from PIL import Image
 import wx
 from threading import Thread
 import win32con
+# from .image_analyzer import analyze_image  # If present, update to image_analyzer_azure
 
 def get_clipboard_image():
     """Gets clipboard image, saves it, and returns the file path or an error message."""

@@ -1,5 +1,7 @@
+samples/
 src/build/
 neocasa/
 
 *.pyc
 *.jpg
+*.exe
