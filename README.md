@@ -1,21 +1,31 @@
 ![Neocasa](src/images/neocasa_logo.png)
 
-For Georges, my slide can be found: [here](https://stdntpartners-my.sharepoint.com/:p:/g/personal/kefas_lungu_studentambassadors_com/EdMs5vTkEbtIsJYHp8ary0IBgLc-eZixakIcCpvUWVUt5Q?e=E0MXaC).
 # Neocasa
-This is a project for the Microsoft learn student ambassadors [December 2024 to February 2025 AI project](https://mvp.microsoft.com/en-US/studentambassadors/).
-The project will be on building an app that uses Microsoft Azure vision, to get the descriptions of our images, with the following features.
+
+Neocasa is an app that uses state of the art AI models to get the descriptions of our images, with the following features.
 * Generate image descriptions and allow you to ask follow-up questions.
 * Allows you to communicate using speech, and here an audio feedback if you want to.
 * Generate brief captions for images, suitable for the web.
 * Take a screenshot to describe it.
 * Describe any window, app, or whatever can be snapped. Including yourself using your device camera!
 
-Just like Microsoft has seeingAI for Android and IOS, consider this as a seeingAI for windows.
+Just like Microsoft has seeingAI for Android and IOS, consider this as a seeingAI for windows, but using several AI models.
+
+The following models are currently supported, or will be in the coming months.
+* Microsoft Azure
+* Google Gemini
+* OpenAI
+* Claud
+Grok
+
 ## Requirements and how to run the project locally:
+Please note: requirements for each models will be added as they are built.
+### Microsoft Azure
 * Firstly, you will need access to the [Azure portal](https://portal.azure.com).
 * You can follow [this article ](https://azure.microsoft.com/free/) to create a free account, or even [create an azure for student account](https://azure.microsoft.com/free/students) if you are a student. 
 * Then, create a [speech](https://portal.azure.com/#create/Microsoft.CognitiveServicesSpeechServices) and [vision](https://portal.vision.cognitive.azure.com/) resource. For an instruction on how to create an azure resource, [click here.](https://learn.microsoft.com/en-us/azure/developer/intro/azure-developer-create-resources). You should be fine after that.
-* Get your keys and endpoint, then modify auth module in this project to suit your needs.
+* Get your keys and endpoint.
+
 * Clone this repo to your local machine:
   ```
   https://github.com/kefaslungu/neocasa.git
