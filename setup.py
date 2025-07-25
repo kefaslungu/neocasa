@@ -5,7 +5,7 @@ from cx_Freeze import setup, Executable
 build_exe_options = {
     "packages": ["os", "sys"],
     "excludes": ["unittest", "pydoc", "tkinter"],    # exclude unused modules
-    "include_files": [("./images", "images")],       # include additional files or folders
+    "include_files": [("./src/images", "images")],       # include additional files or folders
     "include_msvcr": True,                           # include MS Visual C++ runtime DLLs
     "optimize": 2,                                   # enable optimization
 }
@@ -22,5 +22,5 @@ setup(
     url="https://github.com/kefaslungu/neocasa",
     license="GPL2",
     options={"build_exe": build_exe_options},
-    executables=[Executable("neocasa.py", base=base, icon="images/neocasa_logo.ico")]
+    executables=[Executable("src/neocasa.py", base=base, icon="src/images/neocasa_logo.ico")]
 )

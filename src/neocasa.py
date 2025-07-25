@@ -15,69 +15,20 @@ import vision
 
 import auth
 
-class ModelSettingsPanel(wx.Panel):
-    def __init__(self, parent, model):
-        super().__init__(parent)
-        self.model = model
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        # API key field using auth module
-        sizer.Add(wx.StaticText(self, label="API Key:"), 0, wx.ALL, 5)
-        api_key = auth.get_api_key(model.name)
-        self.api_key_ctrl = wx.TextCtrl(self, value=api_key if api_key else "")
-        sizer.Add(self.api_key_ctrl, 0, wx.EXPAND | wx.ALL, 5)
-        # Add more fields as needed for each model
-        self.SetSizer(sizer)
 
-    def save(self):
-        if hasattr(self, 'api_key_ctrl'):
-            auth.set_api_key(self.model.name, self.api_key_ctrl.GetValue())
-
-class SettingsPanel(wx.Panel):
-    def __init__(self, parent):
-        super().__init__(parent)
-        vbox = wx.BoxSizer(wx.VERTICAL)
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(wx.StaticText(self, label="Select Model:"), 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
-        self.model_names = description_service.list_available_model_names()
-        self.model_combo = wx.ComboBox(self, choices=self.model_names, style=wx.CB_READONLY)
-        hbox.Add(self.model_combo, 1, wx.ALL | wx.EXPAND, 5)
-        vbox.Add(hbox, 0, wx.EXPAND)
-
-        self.model_panels = {}
-        self.model_panel_sizer = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(self.model_panel_sizer, 1, wx.EXPAND)
-
-        self.SetSizer(vbox)
-        self.model_combo.Bind(wx.EVT_COMBOBOX, self.on_model_select)
-        if self.model_names:
-            self.model_combo.SetSelection(0)
-            self.show_model_panel(self.model_names[0])
-
-    def on_model_select(self, event):
-        model_name = self.model_combo.GetStringSelection()
-        self.show_model_panel(model_name)
-
-    def show_model_panel(self, model_name):
-        # Remove old panel
-        for child in self.model_panel_sizer.GetChildren():
-            child.GetWindow().Hide()
-            self.model_panel_sizer.Detach(child.GetWindow())
-        # Add new panel
-        model = description_service.get_model_by_name(model_name)
-        if model_name not in self.model_panels:
-            panel = ModelSettingsPanel(self, model)
-            self.model_panels[model_name] = panel
-        else:
-            panel = self.model_panels[model_name]
-        self.model_panel_sizer.Add(panel, 1, wx.EXPAND)
-        panel.Show()
-        self.Layout()
+# Import settings panels from settings.py
+from settings import Settings #, ModelSettingsPanel
 
 class Neocasa(wx.Frame):
     def __init__(self):
         super().__init__(None, wx.ID_ANY, title="Neocasa", size=(600, 500))
         icon = wx.Icon("images/neocasa_logo.ico", wx.BITMAP_TYPE_ICO)
         self.SetIcon(icon)
+
+
+        # Add the menubar from the UI module
+        from ui import Menubar
+        self.SetMenuBar(Menubar(self))
 
         self.notebook = wx.Notebook(self)
 
@@ -97,22 +48,22 @@ class Neocasa(wx.Frame):
             ("Describe Current Window", self.window_screenshot),
             ("Take a Full Screenshot and describe it", self.full_screenshot),
         ]
+        from ui import create_button
         for label, handler in button_labels:
-            btn = wx.Button(self.pnl, label=label, size=(250, 40))
+            btn = create_button(self.pnl, label, handler)
             btn.SetFont(font)
             btn.SetBackgroundColour("#7289DA")
             btn.SetForegroundColour("#FFFFFF")
             btn.SetWindowStyle(wx.BORDER_NONE)
             btn.Bind(wx.EVT_ENTER_WINDOW, self.on_hover)
             btn.Bind(wx.EVT_LEAVE_WINDOW, self.on_leave)
-            btn.Bind(wx.EVT_BUTTON, handler)
             vbox.Add(btn, 0, wx.ALIGN_CENTER | wx.ALL, 5)
         self.pnl.SetSizer(vbox)
 
         # Settings panel
-        self.settings_panel = SettingsPanel(self.notebook)
+        self.settings_panel = Settings(self.notebook)
 
-        self.notebook.AddPage(self.pnl, "Main")
+        self.notebook.AddPage(self.pnl, "Neocasa")
         self.notebook.AddPage(self.settings_panel, "Settings")
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.notebook, 1, wx.EXPAND)

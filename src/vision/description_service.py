@@ -1,8 +1,4 @@
 # src/vision/description_service.py
-"""
-Vision API interfaces for the AI Content Describer NVDA add-on
-Unified interface for all supported vision models (OpenAI, Gemini, Claude, Grok, etc.)
-"""
 
 import base64
 import json
